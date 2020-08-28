@@ -1,6 +1,9 @@
 $ export GUID=techdata
+
 $ oc new-project ${GUID}-development --description="Development Environment" --display-name="Development Environment"
+
 $ oc new-project ${GUID}-testing --description="Testing Environment" --display-name="Testing Environment"
+
 $ oc new-project ${GUID}-production --description="Production Environment" --display-name="Production Environment"
 
 $ oc project ${GUID}-development
