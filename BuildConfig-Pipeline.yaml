@@ -1,0 +1,174 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: pipeline-demo
+  namespace: techdata-development
+  selfLink: >-
+    /apis/build.openshift.io/v1/namespaces/pipeline-techdata-dev/buildconfigs/pipeline-demo
+  uid: 67026796-262c-4030-9a4e-b571e03cac97
+  resourceVersion: '151441'
+  creationTimestamp: '2020-08-28T06:11:18Z'
+  managedFields:
+    - manager: Mozilla
+      operation: Update
+      apiVersion: build.openshift.io/v1
+      time: '2020-08-28T06:11:18Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:runPolicy': {}
+          'f:source':
+            'f:type': {}
+          'f:strategy':
+            'f:jenkinsPipelineStrategy':
+              .: {}
+              'f:jenkinsfile': {}
+            'f:type': {}
+          'f:triggers': {}
+    - manager: openshift-sync-plugin-1.0.45
+      operation: Update
+      apiVersion: build.openshift.io/v1
+      time: '2020-08-28T06:11:18Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:nodeSelector': {}
+spec:
+  nodeSelector: {}
+  output: {}
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      jenkinsfile: |
+        // Begin replacing Jenkinsfile here
+        // Set project names
+        def GUID       = "techdata"
+        def devProj    = "$GUID-development"
+        def testProj   = "$GUID-testing"
+        def prodProj   = "$GUID-production"
+        def svc_name   = "webapp"
+        pipeline {
+          agent any
+          stages{
+            stage("Build"){
+              steps{
+                echo '*** Build Starting ***'
+                script{
+                  openshift.withCluster() {
+                    openshift.withProject("${devProj}") {
+                      openshift.selector('bc', 'webapp').startBuild("--wait").logs('-f')
+                    }
+                  }
+                echo '*** Build Complete ***'
+                }
+              }
+            }
+            stage ("Deploy and Verify in Development Env") {
+              steps{
+                echo '*** Deployment Starting ***'
+                script{
+                  openshift.withCluster() {
+                    openshift.withProject("${devProj}") {
+                      // Deploy the cotd application in the devProject
+                      openshift.selector('dc', 'webapp').rollout().latest();
+                      // Wait for application to be deployed
+                      def dc = openshift.selector("dc", "webapp").object()
+                      while (dc.spec.replicas != dc.status.availableReplicas) {
+                        sleep 1
+                      }
+                    }
+                  }
+                }
+                echo '*** Deployment Complete ***'
+                echo '*** Service Verification Starting ***'
+                script{
+                  openshift.withCluster() {
+                    openshift.withProject("${devProj}") {
+                      // def svc = openshift.selector("svc", "webapp")
+                      // openshiftVerifyService apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', namespace: '${GUID}-development', svcName: 'webapp', verbose: 'false'
+                      def connected = openshift.verifyService("${svc_name}")
+                      if (connected) {
+                        echo "Able to connect to ${svc_name}"
+                      } else {
+                        echo "Unable to connect to ${svc_name}"
+                      }
+
+                      // openshiftTag(srcStream: 'webapp', srcTag: 'latest', destStream: 'webapp', destTag: 'testready')
+                      openshift.tag("${devProj}/webapp:latest", "${devProj}/webapp:testready")
+                    }
+                  }
+                }
+                echo '*** Service Verification Complete ***'
+              }
+            }
+            stage ('Deploy and Test in Testing Env') {
+              steps{
+                echo "*** Deploy testready build in ${GUID}-testing project  ***"
+                script {
+                  openshift.withCluster() {
+                    openshift.withProject("${testProj}") {
+                      // openshiftDeploy apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'webapp', namespace: '${GUID}-testing', verbose: 'false', waitTime: ''
+                      // openshiftVerifyDeployment apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'webapp', namespace: '${GUID}-testing', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: '10'
+                      // Deploy the cotd application in the testProject
+                      openshift.selector('dc', 'webapp').rollout().latest();
+                      // Wait for application to be deployed
+                      def dc = openshift.selector("dc", "webapp").object()
+                      while (dc.spec.replicas != dc.status.availableReplicas) {
+                        sleep 1
+                      }
+                      // curl the testProject route
+                      // sh 'curl http://webapp-${GUID}-testing.apps.shared-na4.na4.openshift.opentlc.com'
+                      def route = openshift.selector("route", "webapp").object()
+                      def the_route = "${route.spec.host}"
+                      echo "route: ${the_route}"
+                      sh "curl -s http://${the_route}"
+                    }
+                  }
+                }
+              }
+            }
+            stage ('Promote and Verify in Production Env') {
+              steps{
+                echo '*** Waiting for Input ***'
+                script{
+                  openshift.withCluster() {
+                    openshift.withProject("${prodProj}") {
+                      input message: 'Should we deploy to Production?', ok: "Promote"
+                      // openshiftTag(srcStream: 'webapp', srcTag: 'testready', destStream: 'webapp', destTag: 'prodready')
+                      openshift.tag("${devProj}/webapp:testready", "${devProj}/webapp:prodready")
+                      // openshiftDeploy apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'webapp', namespace: '${GUID}-production', verbose: 'false', waitTime: ''
+                      echo '*** Deploying to Production ***'
+                      def dc = openshift.selector("dc", "webapp").object()
+                      while (dc.spec.replicas != dc.status.availableReplicas) {
+                        sleep 1
+                      }
+                      // openshiftVerifyDeployment apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'webapp', namespace: '${GUID}-production', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: '10'
+                      sleep 10
+                      // test route
+                      def route = openshift.selector("route", "webapp").object()
+                      def the_route = "${route.spec.host}"
+                      echo "route: ${the_route}"
+                      sh "curl -s http://${the_route}"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+  postCommit: {}
+  source:
+    type: None
+  triggers:
+    - type: GitHub
+      github:
+        secret: 5Mlic4Le
+    - type: Generic
+      generic:
+        secret: FiArdDBH
+  runPolicy: Serial
+status:
+  lastVersion: 0
