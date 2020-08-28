@@ -61,3 +61,20 @@ $ oc get dc webapp -o yaml -n ${GUID}-testing | sed 's/automatic: true/automatic
 
 $ oc get dc webapp -o yaml -n ${GUID}-production | sed 's/automatic: true/automatic: false/g' | oc replace -f -
 
+11. Use either of the following methods to create the initial BuildConfig pipeline:
+
+Method 1: Use the command line from any host with the OpenShift client:
+
+Create a file with the contents of the BuildConfig pipeline.
+
+Use the oc create -f FILENAME.yaml command to create the BuildConfig pipeline.
+
+Method 2: Use the OpenShift Container Platform web console.
+
+Log in to the OPENTLC shared OpenShift Container Platform web console.
+
+Select your pipeline-${GUID}-dev project.
+
+On the left menu, select the Developer perspective from the dropdown list.
+
+Select Add → Import YAML, paste the BuildConfig pipeline text in the text box, and then click Create.
