@@ -33,6 +33,7 @@ $ oc policy add-role-to-group system:image-puller system:serviceaccounts:${GUID}
 $ oc new-app httpd~https://github.com/amri-firdaus/html -n ${GUID}-development
 
 7. Verify that the build completed and tag the image. First, we tag the latest build of cotd2 with the tag testready. Then we tag that same image with prodready:
+
 $ oc tag webapp:latest webapp:testready -n ${GUID}-development
 
 $ oc tag webapp:testready webapp:prodready -n ${GUID}-development
