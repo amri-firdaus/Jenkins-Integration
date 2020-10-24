@@ -1,10 +1,10 @@
 kind: BuildConfig
 apiVersion: build.openshift.io/v1
 metadata:
-  name: pipeline-demo
-  namespace: techdata-development
+  name: Jenkins-pipeline
+  namespace: env-development
   selfLink: >-
-    /apis/build.openshift.io/v1/namespaces/pipeline-techdata-dev/buildconfigs/pipeline-demo
+    /apis/build.openshift.io/v1/namespaces/env-development/buildconfigs/pipeline-demo
   uid: 67026796-262c-4030-9a4e-b571e03cac97
   resourceVersion: '151441'
   creationTimestamp: '2020-08-28T06:11:18Z'
@@ -45,7 +45,7 @@ spec:
       jenkinsfile: |
         // Begin replacing Jenkinsfile here
         // Set project names
-        def GUID       = "techdata"
+        def GUID       = "env"
         def devProj    = "$GUID-development"
         def testProj   = "$GUID-testing"
         def prodProj   = "$GUID-production"
