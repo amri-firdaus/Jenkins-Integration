@@ -117,7 +117,7 @@ spec:
                       // Wait for application to be deployed
                       def dc = openshift.selector("dc", "webapp").object()
                       while (dc.spec.replicas != dc.status.availableReplicas) {
-                        sleep 1
+                        sleep 10
                       }
                       // curl the testProject route
                       // sh 'curl http://webapp-${GUID}-testing.apps.shared-na4.na4.openshift.opentlc.com'
