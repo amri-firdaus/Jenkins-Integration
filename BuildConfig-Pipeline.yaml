@@ -146,7 +146,7 @@ spec:
                         sleep 1
                       }
                       // openshiftVerifyDeployment apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'webapp', namespace: '${GUID}-production', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: '10'
-                      sleep 10
+                      sleep 15
                       // test route
                       def route = openshift.selector("route", "webapp").object()
                       def the_route = "${route.spec.host}"
