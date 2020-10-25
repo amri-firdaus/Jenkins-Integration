@@ -95,7 +95,6 @@ spec:
                       } else {
                         echo "Unable to connect to ${svc_name}"
                       }
-
                       // openshiftTag(srcStream: 'webapp', srcTag: 'latest', destStream: 'webapp', destTag: 'testready')
                       openshift.tag("${devProj}/webapp:latest", "${devProj}/webapp:testready")
                     }
@@ -117,7 +116,7 @@ spec:
                       // Wait for application to be deployed
                       def dc = openshift.selector("dc", "webapp").object()
                       while (dc.spec.replicas != dc.status.availableReplicas) {
-                        sleep 10
+                        sleep 1
                       }
                       // curl the testProject route
                       // sh 'curl http://webapp-${GUID}-testing.apps.shared-na4.na4.openshift.opentlc.com'
@@ -145,7 +144,7 @@ spec:
                       while (dc.spec.replicas != dc.status.availableReplicas) {
                         sleep 1
                       }
-                      // openshiftVerifyDeployment apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'webapp', namespace: '${GUID}-production', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: '10'
+                      // openshiftVerifyDeployment apiURL: 'https://openshift.default.svc.cluster.local', authToken: '', depCfg: 'webapp', namespace: '${GUID}-production', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: '15'
                       sleep 15
                       // test route
                       def route = openshift.selector("route", "webapp").object()
