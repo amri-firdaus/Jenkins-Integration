@@ -1,7 +1,7 @@
 kind: BuildConfig
 apiVersion: build.openshift.io/v1
 metadata:
-  name: Jenkins-pipeline
+  name: jenkins-pipeline
   namespace: env-development
   selfLink: >-
     /apis/build.openshift.io/v1/namespaces/env-development/buildconfigs/pipeline-demo
