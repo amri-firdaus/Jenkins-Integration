@@ -1,6 +1,6 @@
 1. Create a few projects for your demonstration. We will be building our app in Dev, and promoting it through Test and Prod.
 
-$ export GUID=techdata
+$ export GUID=env
 
 $ oc new-project ${GUID}-development --description="Development Environment" --display-name="Development Environment"
 
